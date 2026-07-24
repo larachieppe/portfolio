@@ -1,5 +1,6 @@
 import { profile, education, projects, experience, skills, sections } from "./content.js";
 import { fetchRepoMeta, relativeTime, topLanguages } from "./github.js";
+import { tokenize, selfAttention, HEADS } from "./attention.js";
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) =>
@@ -307,6 +308,185 @@ export function wireCursor() {
   document.addEventListener("pointerout", (e) => {
     if (e.target.closest(hotSelector)) ring.classList.remove("hot");
   });
+}
+
+/* ---------------- interactive self-attention lab ---------------- */
+
+const SVGNS = "http://www.w3.org/2000/svg";
+
+export function wireAttentionLab() {
+  const input = $("#attnInput");
+  const graph = $("#attnGraph");
+  const heat = $("#attnHeat");
+  const headsBox = $("#attnHeads");
+  const causalBox = $("#attnCausal");
+  if (!input || !graph) return;
+
+  const DEFAULT = "The animal didn't cross the road because it was too tired";
+  input.value = DEFAULT;
+
+  let head = 0;
+  let causal = false;
+  let focus = null; // hovered query index, or null
+
+  // Head selector chips.
+  for (let h = 0; h < HEADS; h++) {
+    const b = document.createElement("button");
+    b.className = "lab-head" + (h === 0 ? " on" : "");
+    b.textContent = `Head ${h + 1}`;
+    b.addEventListener("click", () => {
+      head = h;
+      [...headsBox.children].forEach((c, i) => c.classList.toggle("on", i === h));
+      render();
+    });
+    headsBox.appendChild(b);
+  }
+
+  causalBox.addEventListener("change", () => {
+    causal = causalBox.checked;
+    render();
+  });
+
+  let raf = 0;
+  input.addEventListener("input", () => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(render);
+  });
+
+  // Redraw the lines on resize (token centres move).
+  window.addEventListener("resize", () => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => draw(lastData));
+  });
+
+  let lastData = null;
+
+  function render() {
+    const tokens = tokenize(input.value);
+    if (!tokens.length) {
+      graph.innerHTML = '<p class="attn-empty">Type something above…</p>';
+      heat.innerHTML = "";
+      lastData = null;
+      return;
+    }
+    const { weights } = selfAttention(tokens, { head, causal });
+    lastData = { tokens, weights };
+
+    // Two token columns (queries left, keys right) + an SVG line layer.
+    const q = tokens
+      .map(
+        (t, i) =>
+          `<button class="attn-tok" data-i="${i}" type="button">${esc(t)}</button>`
+      )
+      .join("");
+    const k = tokens
+      .map((t, j) => `<span class="attn-tok" data-j="${j}">${esc(t)}</span>`)
+      .join("");
+    graph.innerHTML =
+      `<div class="attn-col attn-q">${q}</div>` +
+      `<svg class="attn-lines"></svg>` +
+      `<div class="attn-col attn-k">${k}</div>` +
+      `<span class="attn-axis attn-axis-q">query</span>` +
+      `<span class="attn-axis attn-axis-k">key</span>`;
+
+    // Hover a query token to focus its attention distribution.
+    graph.querySelectorAll(".attn-tok[data-i]").forEach((el) => {
+      const i = +el.dataset.i;
+      const set = () => {
+        focus = i;
+        applyFocus();
+      };
+      el.addEventListener("mouseenter", set);
+      el.addEventListener("focus", set);
+      el.addEventListener("mouseleave", clearFocus);
+      el.addEventListener("blur", clearFocus);
+    });
+
+    renderHeat(tokens, weights);
+    draw(lastData);
+  }
+
+  function clearFocus() {
+    focus = null;
+    applyFocus();
+  }
+
+  function draw(data) {
+    if (!data) return;
+    const svg = graph.querySelector(".attn-lines");
+    if (!svg) return;
+    const gRect = graph.getBoundingClientRect();
+    svg.setAttribute("width", gRect.width);
+    svg.setAttribute("height", gRect.height);
+    svg.innerHTML = "";
+
+    const centre = (el, side) => {
+      const r = el.getBoundingClientRect();
+      return {
+        x: (side === "right" ? r.right : r.left) - gRect.left,
+        y: r.top + r.height / 2 - gRect.top,
+      };
+    };
+    const qEls = [...graph.querySelectorAll(".attn-tok[data-i]")];
+    const kEls = [...graph.querySelectorAll(".attn-tok[data-j]")];
+
+    for (let i = 0; i < data.weights.length; i++) {
+      const a = centre(qEls[i], "right");
+      const row = data.weights[i];
+      for (let j = 0; j < row.length; j++) {
+        const w = row[j];
+        if (w < 0.04) continue;
+        const b = centre(kEls[j], "left");
+        const midx = (a.x + b.x) / 2;
+        const path = document.createElementNS(SVGNS, "path");
+        path.setAttribute(
+          "d",
+          `M ${a.x} ${a.y} C ${midx} ${a.y}, ${midx} ${b.y}, ${b.x} ${b.y}`
+        );
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", w > 0.5 ? "var(--mint)" : "var(--blue)");
+        path.setAttribute("stroke-width", (0.5 + w * 2.4).toFixed(2));
+        path.dataset.i = i;
+        path.style.opacity = (w * 0.85).toFixed(2);
+        svg.appendChild(path);
+      }
+    }
+    applyFocus();
+  }
+
+  function applyFocus() {
+    const svg = graph.querySelector(".attn-lines");
+    if (!svg) return;
+    svg.querySelectorAll("path").forEach((p) => {
+      const on = focus === null || +p.dataset.i === focus;
+      p.style.opacity = on ? p.style.opacity || 0.6 : 0.04;
+    });
+    graph.querySelectorAll(".attn-tok[data-i]").forEach((el) => {
+      el.classList.toggle("dim", focus !== null && +el.dataset.i !== focus);
+    });
+    heat.querySelectorAll(".attn-cell").forEach((c) => {
+      c.classList.toggle("row-on", focus !== null && +c.dataset.i === focus);
+    });
+  }
+
+  function renderHeat(tokens, weights) {
+    const n = tokens.length;
+    let html = `<div class="attn-heat-grid" style="grid-template-columns:repeat(${n},1fr)">`;
+    for (let i = 0; i < n; i++) {
+      const max = Math.max(...weights[i]);
+      for (let j = 0; j < n; j++) {
+        const w = weights[i][j];
+        const a = (w / (max || 1)).toFixed(2);
+        html += `<div class="attn-cell" data-i="${i}" data-j="${j}" title="${esc(
+          tokens[i]
+        )} → ${esc(tokens[j])}: ${(w * 100).toFixed(0)}%" style="background:rgba(75,240,192,${a})"></div>`;
+      }
+    }
+    html += "</div>";
+    heat.innerHTML = html;
+  }
+
+  render();
 }
 
 /* ---------------- case-study overlay ---------------- */

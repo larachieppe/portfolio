@@ -137,23 +137,59 @@
         </div>
       </section>
 
+      <section id="lab">
+        <div class="section-head"><span>02</span> Live · self-attention</div>
+        <div class="lab reveal">
+          <div class="lab-intro">
+            <h2 class="lab-title">
+              Type a sentence.<br />Watch it <u>attend to itself</u>.
+            </h2>
+            <p class="lab-note">
+              Real scaled dot-product self-attention — <span class="mono">Q·Kᵀ/√d → softmax</span> —
+              computed live in your browser over the tokens you type. The weights are untrained,
+              so this is the mechanism itself, not a trained model.
+            </p>
+            <input
+              id="attnInput"
+              class="lab-input"
+              type="text"
+              maxlength="90"
+              autocomplete="off"
+              spellcheck="false"
+              aria-label="Sentence to visualize as self-attention"
+            />
+            <div class="lab-controls">
+              <div class="lab-heads" id="attnHeads" role="group" aria-label="Attention head"></div>
+              <label class="lab-toggle">
+                <input type="checkbox" id="attnCausal" />
+                <span>Causal mask</span>
+              </label>
+            </div>
+          </div>
+          <div class="lab-viz">
+            <div class="attn-graph" id="attnGraph"></div>
+            <div class="attn-heat" id="attnHeat" aria-hidden="true"></div>
+          </div>
+        </div>
+      </section>
+
       <section id="work">
-        <div class="section-head"><span>02</span> Selected work</div>
+        <div class="section-head"><span>03</span> Selected work</div>
         <div class="projects" id="projects"></div>
       </section>
 
       <section id="experience">
-        <div class="section-head"><span>03</span> Experience</div>
+        <div class="section-head"><span>04</span> Experience</div>
         <div class="timeline" id="timeline"></div>
       </section>
 
       <section id="skills">
-        <div class="section-head"><span>04</span> Toolkit</div>
+        <div class="section-head"><span>05</span> Toolkit</div>
         <div class="skills" id="skillsList"></div>
       </section>
 
       <section id="contact">
-        <div class="section-head"><span>05</span> Contact</div>
+        <div class="section-head"><span>06</span> Contact</div>
         <h2 class="contact-lead reveal">
           Let’s build something <u>worth measuring</u>.
         </h2>

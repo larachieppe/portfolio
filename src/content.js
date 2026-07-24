@@ -325,6 +325,7 @@ export const skills = [
 export const sections = [
   { id: "hero", label: "Index", shape: "attention" },
   { id: "about", label: "About", shape: "attention" },
+  { id: "lab", label: "Live", shape: "attention" },
   { id: "work", label: "Work", shape: "transformer" },
   { id: "experience", label: "Experience", shape: "transformer" },
   { id: "skills", label: "Skills", shape: "globe" },

@@ -6,6 +6,7 @@ import {
   wireReveals,
   wireCursor,
   wireCaseStudies,
+  wireAttentionLab,
   fieldOffsetX,
   fieldFadeZone,
 } from "./ui.js";
@@ -16,6 +17,7 @@ renderContent();
 wireReveals();
 wireCursor();
 wireCaseStudies();
+wireAttentionLab();
 
 let field;
 try {

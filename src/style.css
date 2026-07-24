@@ -573,6 +573,246 @@ h1.hero-name .ln:nth-child(2) > span {
   border-top: 1px solid var(--line-soft);
 }
 
+/* ---------- interactive self-attention lab ------------------ */
+
+.lab {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: clamp(28px, 5vw, 72px);
+  align-items: start;
+}
+
+.lab-title {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(1.9rem, 4vw, 3.1rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0 0 22px;
+}
+
+.lab-title u {
+  text-decoration: none;
+  background: linear-gradient(90deg, var(--mint), var(--blue));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.lab-note {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  max-width: 52ch;
+  margin: 0 0 28px;
+}
+
+.lab-note .mono {
+  font-family: var(--mono);
+  font-size: 0.85em;
+  color: var(--mint);
+}
+
+.lab-input {
+  width: 100%;
+  background: rgba(10, 14, 20, 0.6);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 15px 18px;
+  color: var(--paper);
+  font-family: var(--display);
+  font-size: 1.3rem;
+  letter-spacing: -0.01em;
+  outline: none;
+  transition: border-color 0.3s var(--ease), background 0.3s var(--ease);
+}
+
+.lab-input:focus {
+  border-color: var(--mint);
+  background: rgba(75, 240, 192, 0.05);
+}
+
+.lab-input::selection {
+  background: var(--mint);
+  color: var(--ink);
+}
+
+.lab-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-top: 18px;
+}
+
+.lab-heads {
+  display: flex;
+  gap: 8px;
+}
+
+.lab-head {
+  all: unset;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 12px;
+  transition: color 0.3s var(--ease), border-color 0.3s var(--ease),
+    background 0.3s var(--ease);
+}
+
+.lab-head:hover {
+  color: var(--paper);
+}
+
+.lab-head.on {
+  color: var(--mint);
+  border-color: var(--mint);
+  background: rgba(75, 240, 192, 0.08);
+}
+
+.lab-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  user-select: none;
+}
+
+.lab-toggle input {
+  accent-color: var(--mint);
+  width: 14px;
+  height: 14px;
+}
+
+/* --- the attention-lines graph --- */
+.lab-viz {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.attn-graph {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: stretch;
+  gap: 0 clamp(40px, 8vw, 120px);
+  min-height: 60px;
+  padding-top: 18px;
+}
+
+.attn-empty {
+  grid-column: 1 / -1;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.attn-lines {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.attn-lines path {
+  transition: opacity 0.25s var(--ease);
+}
+
+.attn-col {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.attn-k {
+  align-items: flex-start;
+}
+
+.attn-tok {
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1;
+  color: var(--paper);
+  background: rgba(10, 14, 20, 0.85);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 11px;
+  white-space: nowrap;
+  transition: color 0.25s var(--ease), border-color 0.25s var(--ease),
+    opacity 0.25s var(--ease);
+}
+
+button.attn-tok {
+  cursor: pointer;
+}
+
+button.attn-tok:hover,
+button.attn-tok:focus-visible {
+  color: var(--mint);
+  border-color: var(--mint);
+  outline: none;
+}
+
+.attn-tok.dim {
+  opacity: 0.32;
+}
+
+.attn-axis {
+  position: absolute;
+  top: 0;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.attn-axis-q {
+  left: 0;
+}
+.attn-axis-k {
+  right: 0;
+}
+
+/* --- compact heatmap (echoes the hero attention matrix) --- */
+.attn-heat-grid {
+  display: grid;
+  gap: 2px;
+  width: min(340px, 100%);
+  aspect-ratio: 1;
+}
+
+.attn-cell {
+  border-radius: 1px;
+  background: rgba(75, 240, 192, 0.05);
+  transition: outline 0.2s var(--ease);
+  outline: 0 solid transparent;
+}
+
+.attn-cell.row-on {
+  outline: 1px solid rgba(122, 162, 255, 0.7);
+}
+
+@media (max-width: 900px) {
+  .lab {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* ---------- work -------------------------------------------- */
 
 .projects {
