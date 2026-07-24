@@ -1050,6 +1050,14 @@ button.attn-tok:focus-visible {
   justify-content: flex-end;
 }
 
+/* Critical: `.cs-overlay { display:flex }` (author style) beats the UA
+   `[hidden] { display:none }` rule, so without this the closed overlay's
+   full-screen backdrop stays in the layer and — though invisible — swallows
+   every click on the page beneath it. Re-assert display:none when hidden. */
+.cs-overlay[hidden] {
+  display: none;
+}
+
 body.cs-locked {
   overflow: hidden;
 }
@@ -1675,6 +1683,9 @@ footer {
 .veil.gone {
   opacity: 0;
   visibility: hidden;
+  /* Don't rely on the visibility transition to stop intercepting clicks —
+     go click-through immediately so nothing under the veil is ever blocked. */
+  pointer-events: none;
 }
 
 .veil .bar {

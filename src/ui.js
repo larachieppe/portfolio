@@ -347,16 +347,19 @@ export function wireAttentionLab() {
     render();
   });
 
-  let raf = 0;
+  // Debounce with setTimeout (not rAF): the compute is cheap and setTimeout
+  // keeps firing even when a tab is briefly throttled.
+  let debounce = 0;
   input.addEventListener("input", () => {
-    cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(render);
+    clearTimeout(debounce);
+    debounce = setTimeout(render, 70);
   });
 
   // Redraw the lines on resize (token centres move).
+  let rz = 0;
   window.addEventListener("resize", () => {
-    cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(() => draw(lastData));
+    clearTimeout(rz);
+    rz = setTimeout(() => draw(lastData), 80);
   });
 
   let lastData = null;
