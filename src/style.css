@@ -374,12 +374,17 @@ h1.hero-name {
 
 h1.hero-name .ln {
   display: block;
-  overflow: hidden;
+  /* `clip` + a clip-margin masks the rising text during the intro but still
+     lets descenders (the "pp" in Chieppe) extend below the line box, which
+     the tight line-height would otherwise crop. */
+  overflow: clip;
+  overflow-clip-margin: 0.26em;
 }
 
 h1.hero-name .ln > span {
   display: block;
-  transform: translateY(105%);
+  /* Start below the clip margin so the reveal stays fully hidden until rise. */
+  transform: translateY(145%);
   animation: rise 1.15s var(--ease) forwards;
 }
 
