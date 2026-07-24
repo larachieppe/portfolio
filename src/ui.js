@@ -83,7 +83,7 @@ export function renderContent() {
   $("#skillsList").innerHTML = skills
     .map(
       (s, i) => `
-      <div class="skill-row reveal" data-delay="${i % 4}">
+      <div class="skill-group reveal" data-delay="${i % 4}">
         <h3>${esc(s.group)}</h3>
         <div class="skill-items">${s.items.map((it) => `<span>${esc(it)}</span>`).join("")}</div>
       </div>`
@@ -235,18 +235,32 @@ export function wireScroll(field, { lockProgress = false } = {}) {
 /* ---------------- reveal on scroll ---------------- */
 
 export function wireReveals() {
+  const els = [...document.querySelectorAll(".reveal")];
+  const show = (el) => el.classList.add("in");
+
   const io = new IntersectionObserver(
     (entries) => {
       entries.forEach((e) => {
         if (e.isIntersecting) {
-          e.target.classList.add("in");
+          show(e.target);
           io.unobserve(e.target);
         }
       });
     },
     { threshold: 0.14, rootMargin: "0px 0px -8% 0px" }
   );
-  document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+
+  els.forEach((el) => {
+    // Reveal anything already on screen at load immediately, so the first
+    // paint is never a blank section waiting on a scroll event.
+    if (el.getBoundingClientRect().top < window.innerHeight) show(el);
+    else io.observe(el);
+  });
+
+  // Failsafe: IntersectionObserver can silently not fire in a backgrounded or
+  // occluded tab. Never let content stay stuck invisible — reveal everything
+  // still hidden a few seconds in, regardless.
+  setTimeout(() => els.forEach(show), 2500);
 }
 
 /* ---------------- cursor ---------------- */

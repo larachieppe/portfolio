@@ -852,32 +852,36 @@ h1.hero-name .ln:nth-child(2) > span {
 
 /* ---------- skills ------------------------------------------ */
 
+/* Compact grouped cards in a responsive grid — label sits directly above a
+   tight wrap of pills, so there is no large label-to-pill gap and no tall,
+   half-empty rows. */
 .skills {
   display: grid;
-  gap: 0;
-}
-
-.skill-row {
-  display: grid;
-  grid-template-columns: minmax(140px, 0.34fr) minmax(0, 1fr);
-  gap: clamp(16px, 3vw, 44px);
-  padding: 24px 0;
+  grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
+  gap: clamp(22px, 3vw, 36px) clamp(28px, 4vw, 60px);
   border-top: 1px solid var(--line);
-  align-items: start;
+  padding-top: clamp(26px, 4vh, 46px);
 }
 
-.skill-row:last-child {
-  border-bottom: 1px solid var(--line);
-}
-
-.skill-row h3 {
-  margin: 0;
+.skill-group h3 {
+  margin: 0 0 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--mint);
   font-weight: 400;
+}
+
+.skill-group h3::before {
+  content: "";
+  width: 14px;
+  height: 1px;
+  background: var(--mint);
+  opacity: 0.7;
 }
 
 .skill-items {
@@ -1083,8 +1087,7 @@ footer {
   .hero-tag {
     grid-template-columns: minmax(0, 1fr);
   }
-  .job,
-  .skill-row {
+  .job {
     grid-template-columns: minmax(0, 1fr);
   }
 }
