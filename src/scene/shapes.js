@@ -17,111 +17,129 @@ function makeRandom(seed = 1337) {
 }
 
 /**
- * An alpha-helix: two counter-wound backbones joined by rungs.
- * The bioengineering half of the page.
+ * Multi-head self-attention: a stack of attention-weight grids, one per head,
+ * layered in depth and tilted for perspective. Bright, dense cells are the
+ * high-attention weights — a causal-masked lower triangle, a strong diagonal
+ * (tokens attending to themselves), and an "attention sink" on the first key.
+ * The opening shape for the transformer half of the page.
  */
-export function helix(count) {
+export function attention(count) {
   const out = new Float32Array(count * 3);
   const rnd = makeRandom(7);
-  const radius = 2.5;
-  const height = 15.5;
-  const turns = 6.5;
+  const H = 3; // attention heads → stacked planes
+  const G = 24; // grid resolution per head
+  const spanX = 6.8;
+  const spanY = 8.8;
+  const tilt = 0.42; // radians, around X for depth
+  const zSpread = 2.2;
 
-  for (let i = 0; i < count; i++) {
-    const role = i % 5; // 0,1,2,3 = backbone, 4 = rung
-    let x, y, z;
+  // Attention weight in [0,1] for (head, query i, key j).
+  const weight = (h, i, j) => {
+    const fi = i / (G - 1);
+    const fj = j / (G - 1);
+    const causal = fj <= fi + 0.04 ? 1 : 0.05; // future keys masked out
+    const diagW = 1.6 + h * 0.5; // each head focuses differently
+    const diag = Math.exp(-Math.pow((i - j) / diagW, 2));
+    const sink = Math.exp(-Math.pow(j / (1.2 + h * 0.3), 2)) * (0.9 - h * 0.1);
+    const bandPos = G * (0.3 + h * 0.12);
+    const band = Math.exp(-Math.pow((j - bandPos) / 1.3, 2)) * 0.5;
+    return causal * Math.min(1, diag + sink * 0.8 + band);
+  };
 
-    if (role === 4) {
-      // Rung: a bar spanning the two strands at a given height.
-      const step = Math.floor(i / 5);
-      const t = (step % 220) / 220;
-      const angle = t * turns * TAU;
-      const across = rnd() * 2 - 1;
-      const jitter = (rnd() - 0.5) * 0.16;
-      x = Math.cos(angle) * radius * across + jitter;
-      z = Math.sin(angle) * radius * across + jitter;
-      y = (t - 0.5) * height;
-    } else {
-      // Backbone: two strands, offset half a turn from each other.
-      const strand = role < 2 ? 0 : 1;
-      const t = rnd();
-      const angle = t * turns * TAU + strand * Math.PI;
-      // Thicken each strand into a tube instead of a bare line.
-      const tubeAngle = rnd() * TAU;
-      const tubeR = Math.pow(rnd(), 0.65) * 0.3;
-      x = Math.cos(angle) * radius + Math.cos(tubeAngle) * tubeR;
-      z = Math.sin(angle) * radius + Math.sin(tubeAngle) * tubeR;
-      y = (t - 0.5) * height + Math.sin(tubeAngle) * tubeR * 0.5;
+  for (let k = 0; k < count; k++) {
+    const h = Math.floor(rnd() * H);
+
+    // Bias particles hard toward high-weight cells so the grid reads as a
+    // crisp heatmap: bright cells accept immediately and pack densely; near-
+    // zero cells only take the rare particle that exhausts its tries.
+    let gi = 0;
+    let gj = 0;
+    let w = 0;
+    for (let tries = 0; tries < 8; tries++) {
+      gi = Math.floor(rnd() * G);
+      gj = Math.floor(rnd() * G);
+      w = weight(h, gi, gj);
+      if (rnd() < w) break;
     }
 
-    out[i * 3] = x;
-    out[i * 3 + 1] = y;
-    out[i * 3 + 2] = z;
+    const cx = (gi / (G - 1) - 0.5) * spanX;
+    const cy = (gj / (G - 1) - 0.5) * spanY;
+    const x = cx + (rnd() - 0.5) * (spanX / G) * 0.55;
+    const y0 = cy + (rnd() - 0.5) * (spanY / G) * 0.55;
+    // Head depth, plus a little pop toward the viewer for hot cells.
+    const z0 = (h / (H - 1) - 0.5) * zSpread + w * 0.5 + (rnd() - 0.5) * 0.1;
+
+    // Tilt the whole stack around X.
+    out[k * 3] = x;
+    out[k * 3 + 1] = y0 * Math.cos(tilt) - z0 * Math.sin(tilt);
+    out[k * 3 + 2] = y0 * Math.sin(tilt) + z0 * Math.cos(tilt);
   }
   return out;
 }
 
 /**
- * A feed-forward network: layers of nodes with particles streaming along
- * the edges between them. The ML half of the page.
+ * Self-attention graph: a vertical sequence of token nodes wired together by
+ * curved attention arcs that bow out into 3D. Local attention forms a tight
+ * weave near the axis; every token attends back to the first (long sweeping
+ * arcs), plus sparse long-range links. The ML / work shape.
  */
-export function lattice(count) {
+export function transformer(count) {
   const out = new Float32Array(count * 3);
   const rnd = makeRandom(4242);
+  const T = 16; // tokens
+  const yTop = 6.2;
+  const yBot = -6.2;
+  const tokenY = (i) => yBot + (yTop - yBot) * (i / (T - 1));
 
-  // Kept deliberately narrow: the field lives in a reserved right-hand
-  // column, so a wide diagram would run off the edge of the screen.
-  // Half-width here (~3.2 + node radius) is what has to fit that column.
-  const layers = [
-    { n: 4, x: -3.2 },
-    { n: 7, x: -1.05 },
-    { n: 7, x: 1.05 },
-    { n: 3, x: 3.2 },
-  ];
-  const spread = 2.9;
-
-  // Precompute node centres, laid out as a ring per layer so it reads as
-  // volume rather than a flat diagram.
-  const nodes = layers.map((layer) => {
-    const pts = [];
-    for (let k = 0; k < layer.n; k++) {
-      const a = (k / layer.n) * TAU + layer.x * 0.3;
-      const r = layer.n === 1 ? 0 : spread * (0.55 + 0.45 * ((k % 3) / 2));
-      pts.push([layer.x, Math.cos(a) * r, Math.sin(a) * r * 0.85]);
-    }
-    return pts;
-  });
-
-  // Flatten every valid edge so particles can be dealt across them evenly.
+  // Build the causal attention edges (query i attends to key j <= i).
   const edges = [];
-  for (let l = 0; l < nodes.length - 1; l++) {
-    for (const a of nodes[l]) for (const b of nodes[l + 1]) edges.push([a, b]);
+  for (let i = 0; i < T; i++) {
+    for (let j = 0; j <= i; j++) {
+      const dist = i - j;
+      let p = Math.exp(-dist / 4) * 0.8; // local attention
+      if (j === 0) p += 0.5; // attention sink on the first token
+      if (rnd() < 0.15) p += 0.5; // occasional long-range link
+      if (dist === 0) p = 0.22; // small self-loop
+      if (rnd() < p) {
+        edges.push({
+          y0: tokenY(j),
+          y1: tokenY(i),
+          ang: rnd() * TAU, // which way the arc bows, around the axis
+          // A quadratic bézier apex only reaches half its control distance,
+          // so the control point is set to ~2x the target bow radius.
+          bow: Math.min(7, 1.0 + dist * 0.45), // longer range bows further
+        });
+      }
+    }
   }
 
-  for (let i = 0; i < count; i++) {
+  for (let k = 0; k < count; k++) {
     let x, y, z;
-    if (i % 4 === 0) {
-      // Node cloud: a soft blob sitting at a node centre.
-      const layer = nodes[i % nodes.length];
-      const p = layer[Math.floor(rnd() * layer.length)];
-      const r = Math.pow(rnd(), 0.5) * 0.42;
+    if (k % 7 === 0) {
+      // Token node: a soft blob on the vertical axis.
+      const ti = Math.floor(rnd() * T);
+      const r = Math.pow(rnd(), 0.5) * 0.32;
       const th = rnd() * TAU;
       const ph = Math.acos(rnd() * 2 - 1);
-      x = p[0] + r * Math.sin(ph) * Math.cos(th);
-      y = p[1] + r * Math.sin(ph) * Math.sin(th);
-      z = p[2] + r * Math.cos(ph);
+      x = r * Math.sin(ph) * Math.cos(th);
+      y = tokenY(ti) + r * Math.sin(ph) * Math.sin(th);
+      z = r * Math.cos(ph);
     } else {
-      // Edge particle: somewhere along a connection, with a slight sag.
-      const [a, b] = edges[Math.floor(rnd() * edges.length)];
+      // Particle riding a quadratic-bezier attention arc: both endpoints on
+      // the axis, the control point pushed out radially.
+      const e = edges[Math.floor(rnd() * edges.length)];
       const t = rnd();
-      const sag = Math.sin(t * Math.PI) * 0.22;
-      x = a[0] + (b[0] - a[0]) * t;
-      y = a[1] + (b[1] - a[1]) * t - sag;
-      z = a[2] + (b[2] - a[2]) * t + (rnd() - 0.5) * 0.08;
+      const mt = 1 - t;
+      const ymid = (e.y0 + e.y1) / 2;
+      const ctrlX = Math.cos(e.ang) * e.bow;
+      const ctrlZ = Math.sin(e.ang) * e.bow;
+      x = 2 * mt * t * ctrlX + (rnd() - 0.5) * 0.05;
+      y = mt * mt * e.y0 + 2 * mt * t * ymid + t * t * e.y1;
+      z = 2 * mt * t * ctrlZ + (rnd() - 0.5) * 0.05;
     }
-    out[i * 3] = x;
-    out[i * 3 + 1] = y;
-    out[i * 3 + 2] = z;
+    out[k * 3] = x;
+    out[k * 3 + 1] = y;
+    out[k * 3 + 2] = z;
   }
   return out;
 }
@@ -163,4 +181,4 @@ export function globe(count) {
   return out;
 }
 
-export const generators = { helix, lattice, globe };
+export const generators = { attention, transformer, globe };

@@ -5,15 +5,15 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { generators } from "./shapes.js";
 
 const VERT = /* glsl */ `
-  attribute vec3 aHelix;
-  attribute vec3 aLattice;
-  attribute vec3 aGlobe;
+  attribute vec3 aShapeA;
+  attribute vec3 aShapeB;
+  attribute vec3 aShapeC;
   attribute vec3 aBurst;
   attribute float aSeed;
   attribute float aScale;
 
   uniform float uTime;
-  uniform float uProgress;   // 0 = helix, 1 = lattice, 2 = globe
+  uniform float uProgress;   // 0 = attention, 1 = transformer, 2 = globe
   uniform float uReveal;     // 0 = scattered burst, 1 = settled
   uniform float uSize;
   uniform float uPixelRatio;
@@ -81,8 +81,8 @@ const VERT = /* glsl */ `
     float leg = floor(min(p, 1.999999));
     float eased = stagger(legT, aSeed);
 
-    vec3 from = leg < 0.5 ? aHelix : aLattice;
-    vec3 to   = leg < 0.5 ? aLattice : aGlobe;
+    vec3 from = leg < 0.5 ? aShapeA : aShapeB;
+    vec3 to   = leg < 0.5 ? aShapeB : aShapeC;
     vec3 pos  = mix(from, to, eased);
 
     // Turbulence peaks mid-transition, so shapes scatter and re-form.
@@ -130,8 +130,8 @@ const VERT = /* glsl */ `
 const FRAG = /* glsl */ `
   precision highp float;
 
-  uniform vec3 uColorA;   // helix
-  uniform vec3 uColorB;   // lattice
+  uniform vec3 uColorA;   // attention
+  uniform vec3 uColorB;   // transformer
   uniform vec3 uColorC;   // globe
   uniform vec3 uColorHot;
   uniform float uOpacity;
@@ -185,15 +185,15 @@ export function createField(canvas, opts = {}) {
 
   // --- attributes ----------------------------------------------------
   const geometry = new THREE.BufferGeometry();
-  const helix = generators.helix(COUNT);
-  const lattice = generators.lattice(COUNT);
-  const globe = generators.globe(COUNT);
+  const shapeA = generators.attention(COUNT); // hero / about
+  const shapeB = generators.transformer(COUNT); // work / experience
+  const shapeC = generators.globe(COUNT); // skills / contact
 
   const burst = new Float32Array(COUNT * 3);
   const seeds = new Float32Array(COUNT);
   const scales = new Float32Array(COUNT);
   for (let i = 0; i < COUNT; i++) {
-    // Start scattered on a wide shell, then implode into the helix.
+    // Start scattered on a wide shell, then implode into the first shape.
     const th = Math.random() * Math.PI * 2;
     const ph = Math.acos(Math.random() * 2 - 1);
     const r = 26 + Math.random() * 26;
@@ -204,10 +204,10 @@ export function createField(canvas, opts = {}) {
     scales[i] = 0.45 + Math.pow(Math.random(), 2.2) * 1.5;
   }
 
-  geometry.setAttribute("position", new THREE.BufferAttribute(helix.slice(), 3));
-  geometry.setAttribute("aHelix", new THREE.BufferAttribute(helix, 3));
-  geometry.setAttribute("aLattice", new THREE.BufferAttribute(lattice, 3));
-  geometry.setAttribute("aGlobe", new THREE.BufferAttribute(globe, 3));
+  geometry.setAttribute("position", new THREE.BufferAttribute(shapeA.slice(), 3));
+  geometry.setAttribute("aShapeA", new THREE.BufferAttribute(shapeA, 3));
+  geometry.setAttribute("aShapeB", new THREE.BufferAttribute(shapeB, 3));
+  geometry.setAttribute("aShapeC", new THREE.BufferAttribute(shapeC, 3));
   geometry.setAttribute("aBurst", new THREE.BufferAttribute(burst, 3));
   geometry.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 1));
   geometry.setAttribute("aScale", new THREE.BufferAttribute(scales, 1));
@@ -369,7 +369,7 @@ export function createField(canvas, opts = {}) {
   frame();
 
   return {
-    /** progress: 0 helix → 1 lattice → 2 globe */
+    /** progress: 0 attention → 1 transformer → 2 globe */
     setProgress(p) {
       targetProgress = Math.max(0, Math.min(2, p));
     },

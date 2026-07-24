@@ -108,7 +108,11 @@ export function renderContent() {
 
 /* ---------------- scroll-driven behaviour ---------------- */
 
-const SHAPE_LABELS = { helix: "α-Helix", lattice: "Neural lattice", globe: "Globe" };
+const SHAPE_LABELS = {
+  attention: "Self-attention",
+  transformer: "Transformer",
+  globe: "Globe",
+};
 
 // Camera constants, mirrored from scene/particles.js.
 const CAM_Z = 26;
@@ -175,12 +179,12 @@ export function wireScroll(field, { lockProgress = false } = {}) {
     topbar.classList.toggle("stuck", y > 40);
 
     // Map page scroll onto the 0→2 morph, with a little hold at each end
-    // so the helix and the globe get a moment to be themselves.
+    // so the attention grid and the globe get a moment to be themselves.
     const progress = Math.min(2, Math.max(0, f * 2.35 - 0.16));
     if (!lockProgress) field.setProgress(progress);
 
     // Pull the camera back slightly through the middle of the page, where
-    // the lattice is widest.
+    // the transformer web is widest.
     field.setZoom(26 + Math.sin(f * Math.PI) * 6);
 
     field.setOffsetX(fieldOffsetX());
@@ -190,7 +194,8 @@ export function wireScroll(field, { lockProgress = false } = {}) {
     field.addScrollImpulse(y - lastScroll);
     lastScroll = y;
 
-    const shape = progress < 0.62 ? "helix" : progress < 1.5 ? "lattice" : "globe";
+    const shape =
+      progress < 0.62 ? "attention" : progress < 1.5 ? "transformer" : "globe";
     if (hud.dataset.shape !== shape) {
       hud.dataset.shape = shape;
       hudShape.textContent = SHAPE_LABELS[shape];

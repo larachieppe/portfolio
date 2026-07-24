@@ -209,10 +209,10 @@ export const skills = [
 
 // Section registry — drives the side rail and the 3D morph targets.
 export const sections = [
-  { id: "hero", label: "Index", shape: "helix" },
-  { id: "about", label: "About", shape: "helix" },
-  { id: "work", label: "Work", shape: "lattice" },
-  { id: "experience", label: "Experience", shape: "lattice" },
+  { id: "hero", label: "Index", shape: "attention" },
+  { id: "about", label: "About", shape: "attention" },
+  { id: "work", label: "Work", shape: "transformer" },
+  { id: "experience", label: "Experience", shape: "transformer" },
   { id: "skills", label: "Skills", shape: "globe" },
   { id: "contact", label: "Contact", shape: "globe" },
 ];
