@@ -167,8 +167,19 @@
             </div>
           </div>
           <div class="lab-viz">
-            <div class="attn-graph" id="attnGraph"></div>
-            <div class="attn-heat" id="attnHeat" aria-hidden="true"></div>
+            <p class="attn-guide">
+              <span class="attn-guide-dot"></span> Hover any word — the others glow by how much
+              it attends to them.
+            </p>
+            <div class="attn-sentence" id="attnSentence"></div>
+            <p class="attn-readout" id="attnReadout"></p>
+            <div class="attn-matrix">
+              <p class="attn-cap">
+                The full picture — every <b>row</b> is one word, lit by how strongly it attends
+                to each word across.
+              </p>
+              <div class="attn-heat" id="attnHeat" aria-hidden="true"></div>
+            </div>
           </div>
         </div>
       </section>

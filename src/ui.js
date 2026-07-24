@@ -316,18 +316,20 @@ const SVGNS = "http://www.w3.org/2000/svg";
 
 export function wireAttentionLab() {
   const input = $("#attnInput");
-  const graph = $("#attnGraph");
+  const sentence = $("#attnSentence");
+  const readout = $("#attnReadout");
   const heat = $("#attnHeat");
   const headsBox = $("#attnHeads");
   const causalBox = $("#attnCausal");
-  if (!input || !graph) return;
+  if (!input || !sentence) return;
 
   const DEFAULT = "The animal didn't cross the road because it was too tired";
   input.value = DEFAULT;
 
   let head = 0;
   let causal = false;
-  let focus = null; // hovered query index, or null
+  let focus = 0; // which word we're reading the attention *of*
+  let data = null;
 
   // Head selector chips.
   for (let h = 0; h < HEADS; h++) {
@@ -347,145 +349,176 @@ export function wireAttentionLab() {
     render();
   });
 
-  // Debounce with setTimeout (not rAF): the compute is cheap and setTimeout
-  // keeps firing even when a tab is briefly throttled.
+  // setTimeout (not rAF) so it keeps working even under tab throttling.
   let debounce = 0;
   input.addEventListener("input", () => {
     clearTimeout(debounce);
     debounce = setTimeout(render, 70);
   });
 
-  // Redraw the lines on resize (token centres move).
   let rz = 0;
   window.addEventListener("resize", () => {
     clearTimeout(rz);
-    rz = setTimeout(() => draw(lastData), 80);
+    rz = setTimeout(drawArcs, 80);
   });
 
-  let lastData = null;
+  // The word each token attends to most strongly (excluding itself) — used to
+  // pick an interesting default focus so the first thing you see is a real
+  // connection, e.g. "it" → "animal".
+  function strongestQuery(weights) {
+    let best = -1;
+    let bi = 0;
+    for (let i = 0; i < weights.length; i++) {
+      for (let j = 0; j < weights.length; j++) {
+        if (j !== i && weights[i][j] > best) {
+          best = weights[i][j];
+          bi = i;
+        }
+      }
+    }
+    return bi;
+  }
 
   function render() {
     const tokens = tokenize(input.value);
     if (!tokens.length) {
-      graph.innerHTML = '<p class="attn-empty">Type something above…</p>';
+      sentence.innerHTML = '<span class="attn-empty">Type a sentence above…</span>';
       heat.innerHTML = "";
-      lastData = null;
+      readout.textContent = "";
+      data = null;
       return;
     }
     const { weights } = selfAttention(tokens, { head, causal });
-    lastData = { tokens, weights };
+    data = { tokens, weights };
 
-    // Two token columns (queries left, keys right) + an SVG line layer.
-    const q = tokens
-      .map(
-        (t, i) =>
-          `<button class="attn-tok" data-i="${i}" type="button">${esc(t)}</button>`
-      )
-      .join("");
-    const k = tokens
-      .map((t, j) => `<span class="attn-tok" data-j="${j}">${esc(t)}</span>`)
-      .join("");
-    graph.innerHTML =
-      `<div class="attn-col attn-q">${q}</div>` +
-      `<svg class="attn-lines"></svg>` +
-      `<div class="attn-col attn-k">${k}</div>` +
-      `<span class="attn-axis attn-axis-q">query</span>` +
-      `<span class="attn-axis attn-axis-k">key</span>`;
+    sentence.innerHTML =
+      tokens
+        .map(
+          (t, i) =>
+            `<button class="attn-word" data-i="${i}" type="button">${esc(t)}</button>`
+        )
+        .join("") + `<svg class="attn-arcs" aria-hidden="true"></svg>`;
 
-    // Hover a query token to focus its attention distribution.
-    graph.querySelectorAll(".attn-tok[data-i]").forEach((el) => {
+    sentence.querySelectorAll(".attn-word").forEach((el) => {
       const i = +el.dataset.i;
       const set = () => {
         focus = i;
-        applyFocus();
+        paint();
       };
       el.addEventListener("mouseenter", set);
       el.addEventListener("focus", set);
-      el.addEventListener("mouseleave", clearFocus);
-      el.addEventListener("blur", clearFocus);
     });
 
     renderHeat(tokens, weights);
-    draw(lastData);
+    focus = Math.min(focus, tokens.length - 1);
+    if (focus === 0) focus = strongestQuery(weights);
+    paint();
   }
 
-  function clearFocus() {
-    focus = null;
-    applyFocus();
-  }
-
-  function draw(data) {
+  // Light up the sentence for the currently focused word.
+  function paint() {
     if (!data) return;
-    const svg = graph.querySelector(".attn-lines");
-    if (!svg) return;
-    const gRect = graph.getBoundingClientRect();
-    svg.setAttribute("width", gRect.width);
-    svg.setAttribute("height", gRect.height);
+    const { tokens, weights } = data;
+    const row = weights[focus];
+    const max = Math.max(...row);
+
+    sentence.querySelectorAll(".attn-word").forEach((el) => {
+      const j = +el.dataset.i;
+      const rel = row[j] / (max || 1);
+      // Gamma the glow so the few strongly-attended words pop and the diffuse
+      // long tail of an untrained distribution stays quiet.
+      el.style.setProperty("--w", Math.pow(rel, 1.7).toFixed(3));
+      el.classList.toggle("is-query", j === focus);
+      el.classList.toggle("attends", j !== focus && rel > 0.42);
+    });
+
+    drawArcs();
+
+    let bj = -1;
+    let bw = -1;
+    row.forEach((w, j) => {
+      if (j !== focus && w > bw) {
+        bw = w;
+        bj = j;
+      }
+    });
+    readout.innerHTML =
+      bj >= 0
+        ? `<b>“${esc(tokens[focus])}”</b> attends most to <b>“${esc(
+            tokens[bj]
+          )}”</b> <span class="attn-pct">${(bw * 100).toFixed(0)}%</span>`
+        : "";
+
+    heat.querySelectorAll(".attn-cell").forEach((c) => {
+      c.classList.toggle("row-on", +c.dataset.i === focus);
+    });
+  }
+
+  // Arcs from the focused word up and over to the words it attends to.
+  function drawArcs() {
+    const svg = sentence.querySelector(".attn-arcs");
+    if (!svg || !data) return;
+    const r = sentence.getBoundingClientRect();
+    svg.setAttribute("width", r.width);
+    svg.setAttribute("height", r.height);
     svg.innerHTML = "";
 
-    const centre = (el, side) => {
-      const r = el.getBoundingClientRect();
-      return {
-        x: (side === "right" ? r.right : r.left) - gRect.left,
-        y: r.top + r.height / 2 - gRect.top,
-      };
+    const words = [...sentence.querySelectorAll(".attn-word")];
+    if (!words[focus]) return;
+    const centreTop = (el) => {
+      const b = el.getBoundingClientRect();
+      return { x: b.left + b.width / 2 - r.left, y: b.top - r.top };
     };
-    const qEls = [...graph.querySelectorAll(".attn-tok[data-i]")];
-    const kEls = [...graph.querySelectorAll(".attn-tok[data-j]")];
 
-    for (let i = 0; i < data.weights.length; i++) {
-      const a = centre(qEls[i], "right");
-      const row = data.weights[i];
-      for (let j = 0; j < row.length; j++) {
-        const w = row[j];
-        if (w < 0.04) continue;
-        const b = centre(kEls[j], "left");
-        const midx = (a.x + b.x) / 2;
-        const path = document.createElementNS(SVGNS, "path");
-        path.setAttribute(
-          "d",
-          `M ${a.x} ${a.y} C ${midx} ${a.y}, ${midx} ${b.y}, ${b.x} ${b.y}`
-        );
-        path.setAttribute("fill", "none");
-        path.setAttribute("stroke", w > 0.5 ? "var(--mint)" : "var(--blue)");
-        path.setAttribute("stroke-width", (0.5 + w * 2.4).toFixed(2));
-        path.dataset.i = i;
-        path.style.opacity = (w * 0.85).toFixed(2);
-        svg.appendChild(path);
-      }
-    }
-    applyFocus();
-  }
+    // Arcs read cleanly only on a single line; when the sentence wraps
+    // (narrow screens) the word-glow carries it, so skip the arcs.
+    const tops = words.map((w) => w.getBoundingClientRect().top);
+    if (Math.max(...tops) - Math.min(...tops) > 12) return;
 
-  function applyFocus() {
-    const svg = graph.querySelector(".attn-lines");
-    if (!svg) return;
-    svg.querySelectorAll("path").forEach((p) => {
-      const on = focus === null || +p.dataset.i === focus;
-      p.style.opacity = on ? p.style.opacity || 0.6 : 0.04;
-    });
-    graph.querySelectorAll(".attn-tok[data-i]").forEach((el) => {
-      el.classList.toggle("dim", focus !== null && +el.dataset.i !== focus);
-    });
-    heat.querySelectorAll(".attn-cell").forEach((c) => {
-      c.classList.toggle("row-on", focus !== null && +c.dataset.i === focus);
+    const from = centreTop(words[focus]);
+    const row = data.weights[focus];
+    const max = Math.max(...row);
+
+    row.forEach((w, j) => {
+      if (j === focus) return;
+      const rel = w / (max || 1);
+      if (rel < 0.14) return;
+      const to = centreTop(words[j]);
+      const lift = Math.min(64, 22 + Math.abs(to.x - from.x) * 0.17);
+      const my = Math.min(from.y, to.y) - lift;
+      const p = document.createElementNS(SVGNS, "path");
+      p.setAttribute("d", `M ${from.x} ${from.y} Q ${(from.x + to.x) / 2} ${my} ${to.x} ${to.y}`);
+      p.setAttribute("fill", "none");
+      p.setAttribute("stroke", rel > 0.6 ? "var(--mint)" : "var(--blue)");
+      p.setAttribute("stroke-width", (0.6 + rel * 2.6).toFixed(2));
+      p.setAttribute("stroke-linecap", "round");
+      p.style.opacity = (0.25 + rel * 0.6).toFixed(2);
+      svg.appendChild(p);
     });
   }
 
+  // Secondary "full matrix" view — now with a token label per row so it reads
+  // as word→word attention, not an unlabelled grid.
   function renderHeat(tokens, weights) {
     const n = tokens.length;
-    let html = `<div class="attn-heat-grid" style="grid-template-columns:repeat(${n},1fr)">`;
+    let html = "";
     for (let i = 0; i < n; i++) {
       const max = Math.max(...weights[i]);
+      let cells = "";
       for (let j = 0; j < n; j++) {
-        const w = weights[i][j];
-        const a = (w / (max || 1)).toFixed(2);
-        html += `<div class="attn-cell" data-i="${i}" data-j="${j}" title="${esc(
+        const a = (weights[i][j] / (max || 1)).toFixed(2);
+        cells += `<div class="attn-cell" data-i="${i}" data-j="${j}" title="“${esc(
           tokens[i]
-        )} → ${esc(tokens[j])}: ${(w * 100).toFixed(0)}%" style="background:rgba(75,240,192,${a})"></div>`;
+        )}” → “${esc(tokens[j])}”: ${(weights[i][j] * 100).toFixed(
+          0
+        )}%" style="background:rgba(75,240,192,${a})"></div>`;
       }
+      html +=
+        `<div class="attn-heat-row" data-i="${i}">` +
+        `<span class="attn-rlabel">${esc(tokens[i])}</span>` +
+        `<div class="attn-heat-cells" style="grid-template-columns:repeat(${n},1fr)">${cells}</div>` +
+        `</div>`;
     }
-    html += "</div>";
     heat.innerHTML = html;
   }
 
