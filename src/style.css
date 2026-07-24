@@ -24,7 +24,10 @@
   --sans: "Inter", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
     Helvetica, Arial, sans-serif;
 
-  --rail: 88px;
+  /* Must exceed the rail's rendered label width (~100px incl. the active
+     item's longer tick) so section content clears the fixed rail at every
+     width. See .rail (left: var(--gutter)) + section padding-left. */
+  --rail: 128px;
   --gutter: clamp(20px, 5vw, 76px);
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
