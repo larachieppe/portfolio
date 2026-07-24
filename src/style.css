@@ -648,11 +648,45 @@ h1.hero-name .ln:nth-child(2) > span {
   margin-top: 12px;
 }
 
+.project-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  text-align: right;
+}
+
 .project .year {
   font-family: var(--mono);
   font-size: 11px;
   color: var(--faint);
   letter-spacing: 0.1em;
+}
+
+.cs-hint {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mint);
+  opacity: 0.65;
+  transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
+  white-space: nowrap;
+}
+
+.cs-hint b {
+  font-weight: 400;
+  display: inline-block;
+  transition: transform 0.4s var(--ease);
+}
+
+.project:hover .cs-hint,
+.project:focus-visible .cs-hint {
+  opacity: 1;
+}
+
+.project:hover .cs-hint b {
+  transform: translateX(4px);
 }
 
 /* Body collapses to zero height until hover / focus / tap. */
@@ -761,6 +795,254 @@ h1.hero-name .ln:nth-child(2) > span {
 .project-links a:hover {
   color: var(--mint);
   border-color: var(--mint);
+}
+
+/* ---------- case-study overlay ------------------------------ */
+
+.cs-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  justify-content: flex-end;
+}
+
+body.cs-locked {
+  overflow: hidden;
+}
+
+.cs-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 5, 8, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.38s var(--ease);
+}
+
+.cs-overlay.show .cs-backdrop {
+  opacity: 1;
+}
+
+/* A panel that slides in from the right, like a reading drawer. */
+.cs-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(720px, 100%);
+  height: 100%;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #080b11, #05070a);
+  border-left: 1px solid var(--line);
+  padding: clamp(28px, 5vw, 68px);
+  transform: translateX(40px);
+  opacity: 0;
+  transition: transform 0.42s var(--ease), opacity 0.42s var(--ease);
+  outline: none;
+}
+
+.cs-overlay.show .cs-panel {
+  transform: none;
+  opacity: 1;
+}
+
+.cs-close {
+  all: unset;
+  position: sticky;
+  top: 0;
+  align-self: flex-end;
+  z-index: 2;
+  margin-bottom: 8px;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(8, 11, 17, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: color 0.3s var(--ease), border-color 0.3s var(--ease);
+}
+
+.cs-close:hover,
+.cs-close:focus-visible {
+  color: var(--mint);
+  border-color: var(--mint);
+}
+
+.cs-head {
+  margin-bottom: 30px;
+}
+
+.cs-kicker {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--mint);
+  margin-bottom: 14px;
+}
+
+.cs-head h2 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(2.2rem, 6vw, 3.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  margin: 0 0 20px;
+}
+
+.cs-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(20px, 4vw, 40px);
+  padding: 24px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 34px;
+}
+
+.cs-sec {
+  margin-bottom: 34px;
+}
+
+.cs-sec h3 {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 16px;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cs-sec h3::before {
+  content: "";
+  width: 16px;
+  height: 1px;
+  background: var(--mint);
+}
+
+.cs-sec h4 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(1.3rem, 3vw, 1.7rem);
+  line-height: 1.25;
+  margin: 0 0 12px;
+  color: var(--paper);
+}
+
+.cs-sec p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.98rem;
+  line-height: 1.7;
+  max-width: 62ch;
+}
+
+/* Pipeline diagram: numbered stages joined by arrows, wraps on narrow. */
+.cs-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.cs-stage {
+  flex: 1 1 auto;
+  min-width: 120px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: rgba(122, 162, 255, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color 0.35s var(--ease), background 0.35s var(--ease);
+}
+
+.cs-stage:hover {
+  border-color: var(--blue);
+  background: rgba(122, 162, 255, 0.09);
+}
+
+.cs-stage-n {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--blue);
+  letter-spacing: 0.1em;
+}
+
+.cs-stage b {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 1.15rem;
+  line-height: 1.1;
+  color: var(--paper);
+}
+
+.cs-stage span {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.cs-arrow {
+  display: flex;
+  align-items: center;
+  color: var(--faint);
+  font-size: 14px;
+}
+
+.cs-links {
+  display: flex;
+  gap: 20px;
+  margin-top: 40px;
+  padding-top: 26px;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cs-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--paper);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 3px;
+  transition: color 0.3s var(--ease), border-color 0.3s var(--ease);
+}
+
+.cs-links a:hover {
+  color: var(--mint);
+  border-color: var(--mint);
+}
+
+@media (max-width: 640px) {
+  /* Stack the flow vertically on phones. */
+  .cs-flow {
+    flex-direction: column;
+  }
+  .cs-arrow {
+    justify-content: center;
+    transform: rotate(90deg);
+  }
 }
 
 /* ---------- experience -------------------------------------- */

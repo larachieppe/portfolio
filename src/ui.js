@@ -31,15 +31,21 @@ export function renderContent() {
         p.repo ? `<a href="${esc(p.repo)}" target="_blank" rel="noopener">Source <span>→</span></a>` : "",
       ].join("");
 
+      const hasCase = !!p.caseStudy;
       return `
-      <article class="project reveal" data-delay="${i % 4}" tabindex="0">
+      <article class="project reveal${hasCase ? " has-case" : ""}" data-delay="${i % 4}"
+        data-id="${esc(p.id)}" tabindex="0"
+        ${hasCase ? 'role="button" aria-label="Open case study: ' + esc(p.title) + '"' : ""}>
         <div class="project-top">
           <div class="num">${String(i + 1).padStart(2, "0")}</div>
           <div>
             <h3>${esc(p.title)}</h3>
             <span class="kicker">${esc(p.kicker)}</span>
           </div>
-          <div class="year">${esc(p.year)}</div>
+          <div class="project-meta">
+            <span class="year">${esc(p.year)}</span>
+            ${hasCase ? '<span class="cs-hint">Case study <b>→</b></span>' : ""}
+          </div>
         </div>
         <div class="project-body"><div>
           <div class="project-inner">
@@ -302,19 +308,136 @@ export function wireCursor() {
   });
 }
 
-/* ---------------- touch: tap a project to expand ---------------- */
+/* ---------------- case-study overlay ---------------- */
 
-export function wireProjectTaps() {
-  document.querySelectorAll(".project").forEach((card) => {
+const esc2 = esc; // alias for readability in template strings below
+
+function flowHTML(flow) {
+  if (!flow || !flow.length) return "";
+  return (
+    '<div class="cs-flow">' +
+    flow
+      .map(
+        (s, i) =>
+          `<div class="cs-stage"><span class="cs-stage-n">${String(i + 1).padStart(
+            2,
+            "0"
+          )}</span><b>${esc2(s.label)}</b><span>${esc2(s.sub)}</span></div>` +
+          (i < flow.length - 1 ? '<div class="cs-arrow" aria-hidden="true">→</div>' : "")
+      )
+      .join("") +
+    "</div>"
+  );
+}
+
+/**
+ * Builds one reusable overlay and wires every project row to open its case
+ * study. Hover still previews inline; a click dives into the full write-up.
+ */
+export function wireCaseStudies() {
+  const byId = Object.fromEntries(projects.map((p) => [p.id, p]));
+
+  const overlay = document.createElement("div");
+  overlay.className = "cs-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.hidden = true;
+  overlay.innerHTML = `
+    <div class="cs-backdrop"></div>
+    <div class="cs-panel" role="document" tabindex="-1">
+      <button class="cs-close" aria-label="Close case study">Close <span aria-hidden="true">✕</span></button>
+      <div class="cs-body"></div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const panel = overlay.querySelector(".cs-panel");
+  const body = overlay.querySelector(".cs-body");
+  const closeBtn = overlay.querySelector(".cs-close");
+  let lastFocus = null;
+
+  function open(id) {
+    const p = byId[id];
+    if (!p || !p.caseStudy) return;
+    const cs = p.caseStudy;
+
+    body.innerHTML = `
+      <header class="cs-head">
+        <div class="cs-kicker">${esc2(p.kicker)} · ${esc2(p.year)}</div>
+        <h2>${esc2(p.title)}</h2>
+        <div class="stack">${p.stack.map((s) => `<span>${esc2(s)}</span>`).join("")}</div>
+      </header>
+      <div class="cs-metrics">${p.metrics
+        .map(
+          (m) =>
+            `<div class="metric"><strong>${esc2(m.value)}</strong><span>${esc2(
+              m.label
+            )}</span></div>`
+        )
+        .join("")}</div>
+      <div class="cs-sec"><h3>The problem</h3><p>${esc2(cs.problem)}</p></div>
+      ${cs.flow ? `<div class="cs-sec"><h3>How it works</h3>${flowHTML(cs.flow)}</div>` : ""}
+      <div class="cs-sec"><h3>Key decision</h3>
+        <h4>${esc2(cs.decision.title)}</h4><p>${esc2(cs.decision.body)}</p></div>
+      <div class="cs-sec"><h3>Result</h3><p>${esc2(cs.result)}</p></div>
+      <div class="cs-links">
+        ${
+          p.href
+            ? `<a href="${esc2(p.href)}" target="_blank" rel="noopener">Live demo <span>→</span></a>`
+            : ""
+        }
+        ${
+          p.repo
+            ? `<a href="${esc2(p.repo)}" target="_blank" rel="noopener">Source <span>→</span></a>`
+            : ""
+        }
+      </div>`;
+
+    lastFocus = document.activeElement;
+    overlay.hidden = false;
+    document.body.classList.add("cs-locked");
+    panel.scrollTop = 0;
+    requestAnimationFrame(() => overlay.classList.add("show"));
+    closeBtn.focus();
+  }
+
+  function close() {
+    overlay.classList.remove("show");
+    document.body.classList.remove("cs-locked");
+    setTimeout(() => {
+      overlay.hidden = true;
+    }, 380);
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  closeBtn.addEventListener("click", close);
+  overlay.querySelector(".cs-backdrop").addEventListener("click", close);
+
+  // Keep Tab within the overlay while it's open (simple focus trap).
+  overlay.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") return close();
+    if (e.key !== "Tab") return;
+    const focusables = overlay.querySelectorAll("button, a[href]");
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  });
+
+  document.querySelectorAll(".project.has-case").forEach((card) => {
     card.addEventListener("click", (e) => {
-      // Let real links through untouched.
-      if (e.target.closest("a")) return;
-      card.classList.toggle("open");
+      if (e.target.closest("a")) return; // let demo/source links through
+      open(card.dataset.id);
     });
     card.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        card.classList.toggle("open");
+        open(card.dataset.id);
       }
     });
   });

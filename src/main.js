@@ -5,7 +5,7 @@ import {
   wireScroll,
   wireReveals,
   wireCursor,
-  wireProjectTaps,
+  wireCaseStudies,
   fieldOffsetX,
   fieldFadeZone,
 } from "./ui.js";
@@ -15,7 +15,7 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matc
 renderContent();
 wireReveals();
 wireCursor();
-wireProjectTaps();
+wireCaseStudies();
 
 let field;
 try {
