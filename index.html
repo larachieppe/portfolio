@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lara Chieppe — Software &amp; ML Engineer</title>
+    <meta
+      name="description"
+      content="Lara Chieppe — software and machine learning engineer. Bioengineering at UC Berkeley. Building multi-agent research systems, protein language models, and payment infrastructure."
+    />
+    <meta name="theme-color" content="#05070a" />
+
+    <meta property="og:title" content="Lara Chieppe — Software & ML Engineer" />
+    <meta
+      property="og:description"
+      content="Multi-agent research systems, protein language models, and payment infrastructure."
+    />
+    <meta property="og:type" content="website" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400&family=Inter:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='42' fill='none' stroke='%234bf0c0' stroke-width='7'/%3E%3Ccircle cx='50' cy='50' r='13' fill='%234bf0c0'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <!-- Loading veil, removed once the first frame is on screen -->
+    <div class="veil" id="veil"><div class="bar"><i></i></div></div>
+
+    <!-- WebGL particle field -->
+    <canvas id="field"></canvas>
+    <div class="atmosphere"></div>
+    <div class="grain"></div>
+
+    <div class="progress-bar" id="progressBar"></div>
+
+    <header class="topbar" id="topbar">
+      <div class="mark"><span class="dot"></span> Lara Chieppe</div>
+      <nav>
+        <a href="#about">About</a>
+        <a href="#work">Work</a>
+        <a href="#experience">Experience</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </header>
+
+    <aside class="rail" id="rail"></aside>
+
+    <div class="hud" id="hud" data-shape="helix">
+      <b id="hudShape">α-Helix</b>
+      <span id="hudCount">—</span>
+    </div>
+
+    <main>
+      <section id="hero">
+        <div class="hero-meta">
+          <span>Berkeley, CA</span>
+          <span>Bioengineering ’27</span>
+          <span><em>◆</em> Open to Summer 2027 internships</span>
+        </div>
+
+        <h1 class="hero-name">
+          <span class="ln"><span>Lara</span></span>
+          <span class="ln"><span>Chieppe</span></span>
+        </h1>
+
+        <div class="hero-line"></div>
+
+        <div class="hero-tag">
+          <h2>
+            I build systems that <u>reason over messy data</u> — and I only
+            report numbers I measured.
+          </h2>
+          <p id="heroBlurb"></p>
+        </div>
+
+        <div class="scroll-cue"><i></i> Scroll</div>
+      </section>
+
+      <section id="about">
+        <div class="section-head"><span>01</span> About</div>
+        <div class="about-grid">
+          <div class="reveal">
+            <p class="lead">
+              Software engineer with a bioengineer’s habits: measure it, or
+              don’t claim it.
+            </p>
+            <p class="body" id="aboutBody"></p>
+          </div>
+          <div class="edu-card reveal" data-delay="2" id="eduCard"></div>
+        </div>
+      </section>
+
+      <section id="work">
+        <div class="section-head"><span>02</span> Selected work</div>
+        <div class="projects" id="projects"></div>
+      </section>
+
+      <section id="experience">
+        <div class="section-head"><span>03</span> Experience</div>
+        <div class="timeline" id="timeline"></div>
+      </section>
+
+      <section id="skills">
+        <div class="section-head"><span>04</span> Toolkit</div>
+        <div class="skills" id="skillsList"></div>
+      </section>
+
+      <section id="contact">
+        <div class="section-head"><span>05</span> Contact</div>
+        <h2 class="contact-lead reveal">
+          Let’s build something <u>worth measuring</u>.
+        </h2>
+        <div class="contact-links reveal" data-delay="1" id="contactLinks"></div>
+        <footer>
+          <span>© <span id="year"></span> Lara Chieppe</span>
+          <span>Built with three.js · WebGL · GLSL</span>
+        </footer>
+      </section>
+    </main>
+
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-dot" id="cursorDot"></div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
