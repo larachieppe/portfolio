@@ -1010,6 +1010,100 @@ body.cs-locked {
   font-size: 14px;
 }
 
+/* Live GitHub data block inside a case study. */
+.cs-repo-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 18px;
+}
+
+.cs-repo-name {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  color: var(--paper);
+  letter-spacing: 0.02em;
+}
+
+.cs-repo-updated {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.cs-live {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mint);
+  box-shadow: 0 0 8px var(--mint);
+  animation: pulse 2.6s ease-in-out infinite;
+}
+
+.cs-repo-stats {
+  display: flex;
+  gap: 28px;
+  margin-bottom: 20px;
+}
+
+.cs-repo-stat strong {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 1.5rem;
+  color: var(--paper);
+}
+
+.cs-repo-stat span {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--faint);
+  margin-left: 8px;
+}
+
+.cs-langbar {
+  display: flex;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--line);
+  margin-bottom: 14px;
+}
+
+.cs-langseg {
+  height: 100%;
+}
+
+.cs-langlegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+
+.cs-lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cs-lang i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
 .cs-links {
   display: flex;
   gap: 20px;

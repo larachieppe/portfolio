@@ -175,7 +175,7 @@ export const projects = [
       { value: "0¢", label: "per on-device inference" },
       { value: "local", label: "first, API second" },
     ],
-    repo: "https://github.com/larachieppe",
+    repo: "https://github.com/larachieppe/on-device-triage-assistant",
     caseStudy: {
       problem:
         "Most ML demos just call an API. I wanted to show the actual systems tradeoff between a " +
@@ -208,7 +208,7 @@ export const projects = [
       { value: "golden", label: "dataset diffing" },
       { value: "v1 → v2", label: "prompt versioning" },
     ],
-    repo: "https://github.com/larachieppe",
+    repo: "https://github.com/larachieppe/model-regression-detector",
     caseStudy: {
       problem:
         "A one-line prompt edit can quietly degrade output quality and sail through review, because " +

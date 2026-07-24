@@ -1,4 +1,5 @@
 import { profile, education, projects, experience, skills, sections } from "./content.js";
+import { fetchRepoMeta, relativeTime, topLanguages } from "./github.js";
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) =>
@@ -379,6 +380,11 @@ export function wireCaseStudies() {
       <div class="cs-sec"><h3>Key decision</h3>
         <h4>${esc2(cs.decision.title)}</h4><p>${esc2(cs.decision.body)}</p></div>
       <div class="cs-sec"><h3>Result</h3><p>${esc2(cs.result)}</p></div>
+      ${
+        p.repo
+          ? '<div class="cs-sec cs-repo" hidden><h3>Repository</h3><div class="cs-repo-inner"></div></div>'
+          : ""
+      }
       <div class="cs-links">
         ${
           p.href
@@ -398,6 +404,56 @@ export function wireCaseStudies() {
     panel.scrollTop = 0;
     requestAnimationFrame(() => overlay.classList.add("show"));
     closeBtn.focus();
+
+    if (p.repo) populateRepo(p.repo);
+  }
+
+  // Fill the Repository section with live GitHub data. Fails soft: on any
+  // error the section simply stays hidden. The section node is captured
+  // synchronously, so a fast re-open to another project can't cross-fill.
+  async function populateRepo(repoUrl) {
+    const sec = body.querySelector(".cs-repo");
+    if (!sec) return;
+    const meta = await fetchRepoMeta(repoUrl);
+    if (!meta || !sec.isConnected) return;
+
+    const langs = topLanguages(meta.languages, 4);
+    const colors = ["var(--mint)", "var(--blue)", "var(--violet)", "var(--hot)", "#586074"];
+    const bar = langs
+      .map(
+        (l, i) =>
+          `<span class="cs-langseg" style="width:${l.pct.toFixed(1)}%;background:${
+            colors[i % colors.length]
+          }"></span>`
+      )
+      .join("");
+    const legend = langs
+      .map(
+        (l, i) =>
+          `<span class="cs-lang"><i style="background:${colors[i % colors.length]}"></i>${esc2(
+            l.name
+          )} ${Math.round(l.pct)}%</span>`
+      )
+      .join("");
+    const stars =
+      meta.stars > 0
+        ? `<div class="cs-repo-stat"><strong>★ ${meta.stars}</strong><span>stars</span></div>`
+        : "";
+
+    sec.querySelector(".cs-repo-inner").innerHTML = `
+      <div class="cs-repo-top">
+        <span class="cs-repo-name">${esc2(meta.fullName)}</span>
+        <span class="cs-repo-updated"><i class="cs-live"></i>Updated ${esc2(
+          relativeTime(meta.pushedAt)
+        )}</span>
+      </div>
+      ${stars ? `<div class="cs-repo-stats">${stars}</div>` : ""}
+      ${
+        bar
+          ? `<div class="cs-langbar">${bar}</div><div class="cs-langlegend">${legend}</div>`
+          : ""
+      }`;
+    sec.hidden = false;
   }
 
   function close() {
