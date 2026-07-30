@@ -267,7 +267,7 @@ export function wireReveals() {
   });
 
   // Failsafe: IntersectionObserver can silently not fire in a backgrounded or
-  // occluded tab. Never let content stay stuck invisible — reveal everything
+  // occluded tab. Never let content stay stuck invisible - reveal everything
   // still hidden a few seconds in, regardless.
   setTimeout(() => els.forEach(show), 2500);
 }
@@ -295,7 +295,7 @@ export function wireCursor() {
   );
 
   (function loop() {
-    // The ring lags the dot slightly — reads as weight.
+    // The ring lags the dot slightly - reads as weight.
     rx += (x - rx) * 0.16;
     ry += (y - ry) * 0.16;
     ring.style.transform = `translate(${rx}px, ${ry}px)`;
@@ -363,7 +363,7 @@ export function wireAttentionLab() {
     rz = setTimeout(drawArcs, 80);
   });
 
-  // The word each token attends to most strongly (excluding itself) — used to
+  // The word each token attends to most strongly (excluding itself) - used to
   // pick an interesting default focus so the first thing you see is a real
   // connection, e.g. "it" → "animal".
   function strongestQuery(weights) {
@@ -498,7 +498,7 @@ export function wireAttentionLab() {
     });
   }
 
-  // Secondary "full matrix" view — now with a token label per row so it reads
+  // Secondary "full matrix" view - now with a token label per row so it reads
   // as word→word attention, not an unlabelled grid.
   function renderHeat(tokens, weights) {
     const n = tokens.length;

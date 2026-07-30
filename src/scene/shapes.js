@@ -18,7 +18,7 @@ function makeRandom(seed = 1337) {
 
 /**
  * A distributed network: hub nodes scattered through a 3D volume, wired to
- * their nearest neighbours into a connected mesh — the graph/distributed-
+ * their nearest neighbours into a connected mesh - the graph/distributed-
  * systems motif. Particles cluster at the nodes and stream along the edges.
  * Opening shape for the top of the page.
  */

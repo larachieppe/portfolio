@@ -1,6 +1,6 @@
 // Real scaled-dot-product self-attention, computed in the browser over the
 // tokens the visitor types. The projection weights are untrained (seeded
-// random), so this is the attention *mechanism* — Q·Kᵀ/√d → softmax — not a
+// random), so this is the attention *mechanism* - Q·Kᵀ/√d → softmax - not a
 // trained model's learned weights. Positional encoding gives it structure so
 // the patterns read as meaningful rather than pure noise.
 
@@ -32,7 +32,7 @@ export function tokenize(text, max = 14) {
 }
 
 // Token embedding: a deterministic pseudo-embedding (hash per dimension) plus
-// sinusoidal positional encoding — the same two ingredients a transformer
+// sinusoidal positional encoding - the same two ingredients a transformer
 // input has, minus the learned lookup table.
 function embed(tokens) {
   const n = tokens.length;

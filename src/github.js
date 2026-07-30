@@ -1,4 +1,4 @@
-// Live repository data from the public GitHub API — no auth (60 req/hr per
+// Live repository data from the public GitHub API - no auth (60 req/hr per
 // IP is plenty for a portfolio), cached in localStorage so repeat opens and
 // revisits don't re-hit the API. Every call fails soft: a network error or
 // rate-limit returns null and the caller simply hides the section.
@@ -30,7 +30,7 @@ function writeCache(key, v) {
   try {
     localStorage.setItem(CACHE_PREFIX + key, JSON.stringify({ t: Date.now(), v }));
   } catch {
-    /* storage full or disabled — fine, we just don't cache */
+    /* storage full or disabled - fine, we just don't cache */
   }
 }
 

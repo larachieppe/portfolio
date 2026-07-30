@@ -1,4 +1,4 @@
-// Generates public/og.png — the 1200x630 social share card — from an SVG,
+// Generates public/og.png - the 1200x630 social share card - from an SVG,
 // rendered to PNG in pure Node via resvg. Run: `npm run og`.
 // Everything is code + local font files, so it's repeatable and needs no
 // browser or network.

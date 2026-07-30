@@ -1,5 +1,5 @@
 /* ============================================================
-   Lara Chieppe — portfolio
+   Lara Chieppe - portfolio
    Dark editorial layout over a live WebGL particle field.
    ============================================================ */
 
@@ -74,7 +74,7 @@ a {
   display: block;
 }
 
-/* Vignette, a warm floor glow, and — critically — a scrim over the left
+/* Vignette, a warm floor glow, and - critically - a scrim over the left
    two-thirds so the particle field can never compete with body copy.
    It sits above the canvas (z 1) but below the content (z 10), so it dims
    the particles only. */
@@ -96,7 +96,7 @@ a {
 }
 
 @media (max-width: 900px) {
-  /* No spare column on phones — dim the whole field evenly instead, but
+  /* No spare column on phones - dim the whole field evenly instead, but
      only enough to keep text legible; it should still be visible. */
   .atmosphere {
     background:
@@ -105,7 +105,7 @@ a {
   }
 }
 
-/* Film grain — kills banding on the dark gradients and adds texture. */
+/* Film grain - kills banding on the dark gradients and adds texture. */
 .grain {
   position: fixed;
   inset: -50%;
@@ -1124,7 +1124,7 @@ h1.hero-name .ln:nth-child(2) > span {
 
 /* Critical: `.cs-overlay { display:flex }` (author style) beats the UA
    `[hidden] { display:none }` rule, so without this the closed overlay's
-   full-screen backdrop stays in the layer and — though invisible — swallows
+   full-screen backdrop stays in the layer and - though invisible - swallows
    every click on the page beneath it. Re-assert display:none when hidden. */
 .cs-overlay[hidden] {
   display: none;
@@ -1551,7 +1551,7 @@ body.cs-locked {
 
 /* ---------- skills ------------------------------------------ */
 
-/* Compact grouped cards in a responsive grid — label sits directly above a
+/* Compact grouped cards in a responsive grid - label sits directly above a
    tight wrap of pills, so there is no large label-to-pill gap and no tall,
    half-empty rows. */
 .skills {
@@ -1755,7 +1755,7 @@ footer {
 .veil.gone {
   opacity: 0;
   visibility: hidden;
-  /* Don't rely on the visibility transition to stop intercepting clicks —
+  /* Don't rely on the visibility transition to stop intercepting clicks -
      go click-through immediately so nothing under the veil is ever blocked. */
   pointer-events: none;
 }

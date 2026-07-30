@@ -30,7 +30,7 @@ const VERT = /* glsl */ `
   varying float vSeed;
   varying float vMix;
 
-  // Cheap gradient noise — enough character for drift and turbulence.
+  // Cheap gradient noise - enough character for drift and turbulence.
   vec3 hash3(vec3 p) {
     p = vec3(dot(p, vec3(127.1, 311.7, 74.7)),
              dot(p, vec3(269.5, 183.3, 246.1)),
@@ -274,7 +274,7 @@ export function createField(canvas, opts = {}) {
   const raycaster = new THREE.Raycaster();
   let pointerActive = false;
 
-  // Start already in position and on the right shape — sliding in from the
+  // Start already in position and on the right shape - sliding in from the
   // centre on every load would read as a glitch, not an intro.
   let targetProgress = opts.initialProgress ?? 0;
   let currentProgress = targetProgress;
