@@ -342,12 +342,16 @@ section {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding-top: 120px;
+  align-items: center;
+  text-align: center;
+  padding-top: 100px;
+  padding-bottom: 80px;
 }
 
 .hero-meta {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 10px 22px;
   font-family: var(--mono);
   font-size: 11px;
@@ -365,46 +369,44 @@ section {
 h1.hero-name {
   font-family: var(--display);
   font-weight: 400;
-  font-size: clamp(3.2rem, 12.5vw, 12rem);
-  line-height: 0.86;
+  font-size: clamp(3rem, 9vw, 9rem);
+  line-height: 0.9;
   letter-spacing: -0.03em;
   margin: 0 0 4px;
+  text-align: center;
   text-wrap: balance;
 }
 
 h1.hero-name .ln {
   display: block;
-  /* `clip` + a clip-margin masks the rising text during the intro but still
-     lets descenders (the "pp" in Chieppe) extend below the line box, which
-     the tight line-height would otherwise crop. */
-  overflow: clip;
-  overflow-clip-margin: 0.26em;
+  /* No clipping here: descenders (the "pp" in Chieppe) must never be cropped,
+     and overflow-clip-margin isn't reliable across browsers. The intro fades
+     each line up instead of masking it, so nothing needs to be clipped. */
 }
 
 h1.hero-name .ln > span {
   display: block;
-  /* Start below the clip margin so the reveal stays fully hidden until rise. */
-  transform: translateY(145%);
-  animation: rise 1.15s var(--ease) forwards;
+  opacity: 0;
+  transform: translateY(0.35em);
+  animation: rise 1s var(--ease) forwards;
 }
 
 h1.hero-name .ln:nth-child(2) > span {
   animation-delay: 0.12s;
-  padding-left: clamp(0px, 8vw, 180px);
   color: transparent;
   -webkit-text-stroke: 1px rgba(234, 240, 238, 0.55);
 }
 
 @keyframes rise {
-  to { transform: translateY(0); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .hero-line {
   height: 1px;
-  background: linear-gradient(90deg, var(--mint), transparent 70%);
-  margin: clamp(26px, 5vh, 48px) 0 24px;
+  width: min(300px, 55%);
+  background: linear-gradient(90deg, transparent, var(--mint), transparent);
+  margin: clamp(26px, 5vh, 44px) auto 24px;
   transform: scaleX(0);
-  transform-origin: left;
   animation: draw 1.4s var(--ease) 0.5s forwards;
 }
 
@@ -413,10 +415,10 @@ h1.hero-name .ln:nth-child(2) > span {
 }
 
 .hero-tag {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
-  gap: clamp(20px, 5vw, 70px);
-  align-items: end;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(18px, 3vh, 30px);
   opacity: 0;
   animation: fade-up 1s var(--ease) 0.7s forwards;
 }
@@ -427,6 +429,7 @@ h1.hero-name .ln:nth-child(2) > span {
   font-size: clamp(1.5rem, 3.4vw, 2.9rem);
   line-height: 1.14;
   margin: 0;
+  max-width: 22ch;
   letter-spacing: -0.01em;
 }
 
@@ -439,10 +442,10 @@ h1.hero-name .ln:nth-child(2) > span {
 }
 
 .hero-tag p {
-  margin: 0;
+  margin: 0 auto;
   color: var(--muted);
   font-size: 0.95rem;
-  max-width: 46ch;
+  max-width: 52ch;
 }
 
 @keyframes fade-up {
@@ -452,9 +455,11 @@ h1.hero-name .ln:nth-child(2) > span {
 
 .scroll-cue {
   position: absolute;
-  left: calc(var(--gutter) + var(--rail));
+  left: 0;
+  right: 0;
   bottom: 34px;
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: 12px;
   font-family: var(--mono);
@@ -1824,7 +1829,7 @@ footer {
     transition-duration: 0.01ms !important;
   }
   .reveal { opacity: 1; transform: none; }
-  h1.hero-name .ln > span { transform: none; }
+  h1.hero-name .ln > span { transform: none; opacity: 1; }
   .hero-line { transform: scaleX(1); }
   .hero-tag, .scroll-cue { opacity: 1; }
   .grain { animation: none; }
