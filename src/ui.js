@@ -12,8 +12,9 @@ const esc = (s) =>
 
 export function renderContent() {
   $("#heroBlurb").textContent =
-    "Currently building ML systems and shipping production software — most recently payment " +
-    "infrastructure at BTG Pactual and data tooling for 130+ partner companies at Reach Capital.";
+    "I build production ML, data, and infrastructure systems. Recent work includes payment " +
+    "infrastructure at BTG Pactual and data tooling supporting 130+ companies in Reach " +
+    "Capital’s portfolio.";
 
   $("#aboutBody").textContent = profile.blurb;
   $("#year").textContent = new Date().getFullYear();
@@ -117,8 +118,8 @@ export function renderContent() {
 /* ---------------- scroll-driven behaviour ---------------- */
 
 const SHAPE_LABELS = {
-  attention: "Self-attention",
   transformer: "Transformer",
+  network: "Network",
   globe: "Globe",
 };
 
@@ -203,7 +204,7 @@ export function wireScroll(field, { lockProgress = false } = {}) {
     lastScroll = y;
 
     const shape =
-      progress < 0.62 ? "attention" : progress < 1.5 ? "transformer" : "globe";
+      progress < 0.62 ? "transformer" : progress < 1.5 ? "network" : "globe";
     if (hud.dataset.shape !== shape) {
       hud.dataset.shape = shape;
       hudShape.textContent = SHAPE_LABELS[shape];

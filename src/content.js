@@ -10,10 +10,10 @@ export const profile = {
     "reason over messy data",
   ],
   blurb:
-    "Bioengineering at UC Berkeley, but most of my time goes to shipping software — " +
-    "payment infrastructure at BTG Pactual, React Native products for fintech teams, and " +
-    "ML systems that I hold to real, measured numbers. I care about the boring parts: " +
-    "latency budgets, evaluation harnesses, and never reporting an accuracy I did not measure.",
+    "I care about the parts that don’t demo well — latency budgets, evaluation harnesses, " +
+    "deterministic tests — and I’d rather report a number I actually measured than one that " +
+    "sounds impressive. Most of what I build has to survive contact with real, messy data, so " +
+    "I hold it to results I can reproduce.",
   email: "larachieppe@berkeley.edu",
   phone: "+1 (510) 993-6443",
   links: [
@@ -25,7 +25,7 @@ export const profile = {
 
 export const education = {
   school: "University of California, Berkeley",
-  degree: "B.S. Bioengineering",
+  degree: "B.S. Candidate · Class of 2027",
   dates: "Aug 2023 — May 2027",
   detail:
     "Data Structures & Algorithms · Full Stack Web Development · Machine Structures · " +
@@ -323,11 +323,11 @@ export const skills = [
 
 // Section registry — drives the side rail and the 3D morph targets.
 export const sections = [
-  { id: "hero", label: "Index", shape: "attention" },
-  { id: "about", label: "About", shape: "attention" },
-  { id: "lab", label: "Live", shape: "attention" },
-  { id: "work", label: "Work", shape: "transformer" },
-  { id: "experience", label: "Experience", shape: "transformer" },
+  { id: "hero", label: "Index", shape: "transformer" },
+  { id: "about", label: "About", shape: "transformer" },
+  { id: "lab", label: "Live", shape: "transformer" },
+  { id: "work", label: "Work", shape: "network" },
+  { id: "experience", label: "Experience", shape: "network" },
   { id: "skills", label: "Skills", shape: "globe" },
   { id: "contact", label: "Contact", shape: "globe" },
 ];

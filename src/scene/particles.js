@@ -13,7 +13,7 @@ const VERT = /* glsl */ `
   attribute float aScale;
 
   uniform float uTime;
-  uniform float uProgress;   // 0 = attention, 1 = transformer, 2 = globe
+  uniform float uProgress;   // 0 = transformer, 1 = network, 2 = globe
   uniform float uReveal;     // 0 = scattered burst, 1 = settled
   uniform float uSize;
   uniform float uPixelRatio;
@@ -130,8 +130,8 @@ const VERT = /* glsl */ `
 const FRAG = /* glsl */ `
   precision highp float;
 
-  uniform vec3 uColorA;   // attention
-  uniform vec3 uColorB;   // transformer
+  uniform vec3 uColorA;   // transformer
+  uniform vec3 uColorB;   // network
   uniform vec3 uColorC;   // globe
   uniform vec3 uColorHot;
   uniform float uOpacity;
@@ -185,8 +185,8 @@ export function createField(canvas, opts = {}) {
 
   // --- attributes ----------------------------------------------------
   const geometry = new THREE.BufferGeometry();
-  const shapeA = generators.attention(COUNT); // hero / about
-  const shapeB = generators.transformer(COUNT); // work / experience
+  const shapeA = generators.transformer(COUNT); // hero / about / lab
+  const shapeB = generators.network(COUNT); // work / experience
   const shapeC = generators.globe(COUNT); // skills / contact
 
   const burst = new Float32Array(COUNT * 3);
@@ -369,7 +369,7 @@ export function createField(canvas, opts = {}) {
   frame();
 
   return {
-    /** progress: 0 attention → 1 transformer → 2 globe */
+    /** progress: 0 transformer → 1 network → 2 globe */
     setProgress(p) {
       targetProgress = Math.max(0, Math.min(2, p));
     },

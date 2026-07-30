@@ -17,62 +17,69 @@ function makeRandom(seed = 1337) {
 }
 
 /**
- * Multi-head self-attention: a stack of attention-weight grids, one per head,
- * layered in depth and tilted for perspective. Bright, dense cells are the
- * high-attention weights — a causal-masked lower triangle, a strong diagonal
- * (tokens attending to themselves), and an "attention sink" on the first key.
- * The opening shape for the transformer half of the page.
+ * A distributed network: hub nodes scattered through a 3D volume, wired to
+ * their nearest neighbours into a connected mesh — the graph/distributed-
+ * systems motif. Particles cluster at the nodes and stream along the edges.
+ * Opening shape for the top of the page.
  */
-export function attention(count) {
+export function network(count) {
   const out = new Float32Array(count * 3);
-  const rnd = makeRandom(7);
-  const H = 3; // attention heads → stacked planes
-  const G = 24; // grid resolution per head
-  const spanX = 6.8;
-  const spanY = 8.8;
-  const tilt = 0.42; // radians, around X for depth
-  const zSpread = 2.2;
+  const rnd = makeRandom(2024);
+  const N = 16; // hub nodes
+  const R = 4.0;
 
-  // Attention weight in [0,1] for (head, query i, key j).
-  const weight = (h, i, j) => {
-    const fi = i / (G - 1);
-    const fj = j / (G - 1);
-    const causal = fj <= fi + 0.04 ? 1 : 0.05; // future keys masked out
-    const diagW = 1.6 + h * 0.5; // each head focuses differently
-    const diag = Math.exp(-Math.pow((i - j) / diagW, 2));
-    const sink = Math.exp(-Math.pow(j / (1.2 + h * 0.3), 2)) * (0.9 - h * 0.1);
-    const bandPos = G * (0.3 + h * 0.12);
-    const band = Math.exp(-Math.pow((j - bandPos) / 1.3, 2)) * 0.5;
-    return causal * Math.min(1, diag + sink * 0.8 + band);
-  };
+  // Hubs placed inside an ellipsoid (taller in Y to sit in the column).
+  const hubs = [];
+  while (hubs.length < N) {
+    const x = rnd() * 2 - 1;
+    const y = rnd() * 2 - 1;
+    const z = rnd() * 2 - 1;
+    if (x * x + y * y + z * z > 1) continue;
+    hubs.push([x * R, y * R * 1.2, z * R * 0.8]);
+  }
 
-  for (let k = 0; k < count; k++) {
-    const h = Math.floor(rnd() * H);
+  const d2 = (a, b) =>
+    (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
 
-    // Bias particles hard toward high-weight cells so the grid reads as a
-    // crisp heatmap: bright cells accept immediately and pack densely; near-
-    // zero cells only take the rare particle that exhausts its tries.
-    let gi = 0;
-    let gj = 0;
-    let w = 0;
-    for (let tries = 0; tries < 8; tries++) {
-      gi = Math.floor(rnd() * G);
-      gj = Math.floor(rnd() * G);
-      w = weight(h, gi, gj);
-      if (rnd() < w) break;
+  // Connect each hub to its 2–3 nearest neighbours (dedup undirected edges).
+  const edges = [];
+  const seen = new Set();
+  for (let i = 0; i < N; i++) {
+    const near = hubs
+      .map((h, j) => ({ j, d: j === i ? Infinity : d2(hubs[i], h) }))
+      .sort((a, b) => a.d - b.d);
+    const k = 2 + Math.floor(rnd() * 2);
+    for (let m = 0; m < k; m++) {
+      const j = near[m].j;
+      const key = i < j ? `${i}-${j}` : `${j}-${i}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      edges.push([hubs[i], hubs[j]]);
     }
+  }
 
-    const cx = (gi / (G - 1) - 0.5) * spanX;
-    const cy = (gj / (G - 1) - 0.5) * spanY;
-    const x = cx + (rnd() - 0.5) * (spanX / G) * 0.55;
-    const y0 = cy + (rnd() - 0.5) * (spanY / G) * 0.55;
-    // Head depth, plus a little pop toward the viewer for hot cells.
-    const z0 = (h / (H - 1) - 0.5) * zSpread + w * 0.5 + (rnd() - 0.5) * 0.1;
-
-    // Tilt the whole stack around X.
-    out[k * 3] = x;
-    out[k * 3 + 1] = y0 * Math.cos(tilt) - z0 * Math.sin(tilt);
-    out[k * 3 + 2] = y0 * Math.sin(tilt) + z0 * Math.cos(tilt);
+  for (let p = 0; p < count; p++) {
+    let x, y, z;
+    if (p % 3 === 0) {
+      // Node: a soft glowing blob at a hub.
+      const h = hubs[Math.floor(rnd() * N)];
+      const r = Math.pow(rnd(), 0.5) * 0.5;
+      const th = rnd() * TAU;
+      const ph = Math.acos(rnd() * 2 - 1);
+      x = h[0] + r * Math.sin(ph) * Math.cos(th);
+      y = h[1] + r * Math.sin(ph) * Math.sin(th);
+      z = h[2] + r * Math.cos(ph);
+    } else {
+      // Edge: a particle strung along a connection between two hubs.
+      const [a, b] = edges[Math.floor(rnd() * edges.length)];
+      const t = rnd();
+      x = a[0] + (b[0] - a[0]) * t + (rnd() - 0.5) * 0.05;
+      y = a[1] + (b[1] - a[1]) * t + (rnd() - 0.5) * 0.05;
+      z = a[2] + (b[2] - a[2]) * t + (rnd() - 0.5) * 0.05;
+    }
+    out[p * 3] = x;
+    out[p * 3 + 1] = y;
+    out[p * 3 + 2] = z;
   }
   return out;
 }
@@ -181,4 +188,4 @@ export function globe(count) {
   return out;
 }
 
-export const generators = { attention, transformer, globe };
+export const generators = { transformer, network, globe };

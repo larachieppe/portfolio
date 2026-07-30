@@ -274,7 +274,7 @@ a {
   transition: color 0.6s var(--ease);
 }
 
-.hud[data-shape="transformer"] b { color: var(--blue); }
+.hud[data-shape="network"] b { color: var(--blue); }
 .hud[data-shape="globe"] b { color: var(--violet); }
 
 .progress-bar {

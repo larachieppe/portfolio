@@ -24,7 +24,7 @@ try {
   // `?shape=attention|transformer|globe` renders a given morph state on load — a dev aid
   // for checking composition without having to scroll there.
   const debugShape = import.meta.env.DEV
-    ? ["attention", "transformer", "globe"].indexOf(
+    ? ["transformer", "network", "globe"].indexOf(
         new URLSearchParams(location.search).get("shape")
       )
     : -1;
