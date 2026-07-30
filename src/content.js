@@ -10,10 +10,9 @@ export const profile = {
     "reason over messy data",
   ],
   blurb:
-    "I care about the parts that don’t demo well: latency budgets, evaluation harnesses, " +
-    "deterministic tests. I’d rather report a number I actually measured than one that sounds " +
-    "impressive. Most of what I build has to survive contact with real, messy data, so I hold " +
-    "it to results I can reproduce.",
+    "I enjoy working across the stack, from data pipelines and model evaluation to reliable " +
+    "production systems. I’m most drawn to ambitious problems that demand both careful " +
+    "engineering and clear product thinking.",
   email: "larachieppe@berkeley.edu",
   phone: "+1 (510) 993-6443",
   links: [
