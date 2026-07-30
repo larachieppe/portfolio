@@ -327,6 +327,13 @@ export function wireAttentionLab() {
   const DEFAULT = "The animal didn't cross the road because it was too tired";
   input.value = DEFAULT;
 
+  // Grow the textarea to fit its content so long sentences wrap downward
+  // instead of clipping.
+  const autogrow = () => {
+    input.style.height = "auto";
+    input.style.height = `${input.scrollHeight}px`;
+  };
+
   let head = 0;
   let causal = false;
   let focus = 0; // which word we're reading the attention *of*
@@ -353,6 +360,7 @@ export function wireAttentionLab() {
   // setTimeout (not rAF) so it keeps working even under tab throttling.
   let debounce = 0;
   input.addEventListener("input", () => {
+    autogrow();
     clearTimeout(debounce);
     debounce = setTimeout(render, 70);
   });
@@ -524,6 +532,10 @@ export function wireAttentionLab() {
   }
 
   render();
+  autogrow();
+  // Re-fit once the display font has loaded (metrics change the wrap).
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(autogrow);
+  window.addEventListener("resize", autogrow);
 }
 
 /* ---------------- case-study overlay ---------------- */

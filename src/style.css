@@ -619,6 +619,7 @@ h1.hero-name .ln:nth-child(2) > span {
 }
 
 .lab-input {
+  display: block;
   width: 100%;
   background: rgba(10, 14, 20, 0.6);
   border: 1px solid var(--line);
@@ -627,8 +628,15 @@ h1.hero-name .ln:nth-child(2) > span {
   color: var(--paper);
   font-family: var(--display);
   font-size: 1.3rem;
+  line-height: 1.35;
   letter-spacing: -0.01em;
   outline: none;
+  /* Textarea that grows with its content (height set in JS) and wraps long
+     sentences downward instead of clipping. */
+  resize: none;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-break: break-word;
   transition: border-color 0.3s var(--ease), background 0.3s var(--ease);
 }
 
